@@ -24,14 +24,14 @@ detection engine. Single command to run, zero cost to operate.
    ```
    and paste your key(s) in.
 5. ```bash
-   ./run.sh
+   ./support-insights
    ```
    First run takes 30–60 seconds (creates the virtualenv, installs
    dependencies, builds `data/support.db` from the CSV). Every run after
    that starts in a couple of seconds.
 6. Open **http://127.0.0.1:8000/**.
 
-`run.sh` is genuinely the only command needed — it creates and activates
+`support-insights` is genuinely the only command needed — it creates and activates
 its own virtualenv if one doesn't exist yet, so there's no separate
 "activate the venv first" step.
 
