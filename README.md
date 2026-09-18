@@ -16,7 +16,7 @@ detection engine. Single command to run, zero cost to operate.
    throughout). Check with `python3 --version`.
 2. Clone and enter the project:
    ```bash
-   git clone <repo-url> && cd support-insights
+   git clone https://github.com/Sohanngolla/support-insights.git && cd support-insights
    ```
 3. Get a free Groq API key — [console.groq.com](https://console.groq.com),
    ~30 seconds, no card required. (Optionally also a free Gemini key from
