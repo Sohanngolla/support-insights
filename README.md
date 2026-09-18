@@ -1,5 +1,10 @@
 # Support Insights
 
+![Python](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-65%2F65_passing-brightgreen)
+![Eval](https://img.shields.io/badge/ground--truth_eval-15%2F15_passed-brightgreen)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+
 Natural-language Q&A and anomaly detection over a support-ticket dataset.
 Ask a question in plain English, get an answer grounded in real SQL run
 against the actual data — plus a separate, deterministic (non-LLM) anomaly
@@ -216,7 +221,8 @@ failure.
 
 ## Known limitations
 
-- The agent-performance-outlier rule depends on the spread of the actual
+> [!NOTE]
+> - The agent-performance-outlier rule depends on the spread of the actual
   data; with very few agents or a tight distribution it may report zero
   findings, which is a correct result, not a bug (see above).
 - The SQL guard's enum-grounding check is a heuristic regex match on
