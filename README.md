@@ -8,7 +8,14 @@ detection engine. Single command to run, zero cost to operate.
 ## Quickstart
 
 1. **Python 3.10+** required (the code uses `str | None` union syntax
-   throughout). Check with `python3 --version`.
+   throughout).
+   - **macOS/Linux:** check with `python3 --version`.
+   - **Windows:** check with `python --version` AND `py --version`. If `python --version`
+     opens a Microsoft Store prompt instead of printing a version number, that's a fake
+     stub, not real Python — install from [python.org/downloads](https://python.org/downloads)
+     instead (check **"Add python.exe to PATH"** during install), not the Store version.
+     `support-insights.ps1` detects this automatically and prints a clear fix if it happens,
+     but installing real Python first avoids hitting it at all.
 2. Clone and enter the project:
    ```bash
    git clone https://github.com/Sohanngolla/support-insights.git
