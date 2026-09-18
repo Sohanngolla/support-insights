@@ -56,13 +56,13 @@ class Settings:
     )
     groq_api_key: str | None = field(default_factory=lambda: os.getenv("GROQ_API_KEY"))
     groq_model: str = field(
-        default_factory=lambda: os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        default_factory=lambda: os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     )
     gemini_api_key: str | None = field(
         default_factory=lambda: os.getenv("GEMINI_API_KEY")
     )
     gemini_model: str = field(
-        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     )
     llm_timeout_s: int = field(default_factory=lambda: _env_int("LLM_TIMEOUT_S", 45))
     sql_retry_attempts: int = field(

@@ -1,10 +1,5 @@
 # Support Insights
 
-![Python](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-65%2F65_passing-brightgreen)
-![Eval](https://img.shields.io/badge/ground--truth_eval-15%2F15_passed-brightgreen)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-
 Natural-language Q&A and anomaly detection over a support-ticket dataset.
 Ask a question in plain English, get an answer grounded in real SQL run
 against the actual data — plus a separate, deterministic (non-LLM) anomaly
@@ -16,7 +11,7 @@ detection engine. Single command to run, zero cost to operate.
    throughout). Check with `python3 --version`.
 2. Clone and enter the project:
    ```bash
-   git clone https://github.com/Sohanngolla/support-insights.git && cd support-insights
+   git clone <repo-url> && cd support-insights
    ```
 3. Get a free Groq API key — [console.groq.com](https://console.groq.com),
    ~30 seconds, no card required. (Optionally also a free Gemini key from
@@ -29,14 +24,14 @@ detection engine. Single command to run, zero cost to operate.
    ```
    and paste your key(s) in.
 5. ```bash
-   ./support-insights
+   ./run.sh
    ```
    First run takes 30–60 seconds (creates the virtualenv, installs
    dependencies, builds `data/support.db` from the CSV). Every run after
    that starts in a couple of seconds.
 6. Open **http://127.0.0.1:8000/**.
 
-`support-insights` is genuinely the only command needed — it creates and activates
+`run.sh` is genuinely the only command needed — it creates and activates
 its own virtualenv if one doesn't exist yet, so there's no separate
 "activate the venv first" step.
 
@@ -57,49 +52,14 @@ its own virtualenv if one doesn't exist yet, so there's no separate
 
 | Question | Answer |
 |---|---|
-| How many tickets are currently open? | 111 |
+| How many tickets are currently open? | 99 |
 | What's the average customer rating? | 3.7 |
 | How many distinct agents are there? | 12 |
-| Which resolved tickets got a rating of 1 or 2? | 47 tickets |
-| Show me all Critical tickets not resolved within 12 hours | 34 tickets |
+| Which resolved tickets got a rating of 1 or 2? | 67 tickets |
+| Show me all Critical tickets not resolved within 12 hours | 41 tickets |
 | Who is the president of India? | Declined — outside the dataset's scope |
 
 ## Architecture
-
-### How a question flows through the system
-
-```mermaid
-flowchart TD
-    U[User question] --> Q[app/query.py<br/>orchestration]
-    Q --> L1[LLM Call 1<br/>question + schema → SQL]
-    L1 --> G{app/guard.py<br/>SELECT-only +<br/>enum grounding}
-    G -- rejected --> R[One repair attempt<br/>error fed back to L1]
-    R --> L1
-    G -- passes --> DB[(app/db.py<br/>support.db)]
-    DB --> L2[LLM Call 2<br/>rows + question → answer]
-    L2 --> RESP[answer + sql + data]
-
-    subgraph LLM["app/llm.py — provider chain"]
-        direction LR
-        GROQ[Groq] -.fallback on failure.-> GEM[Gemini 2.5 Flash]
-    end
-    L1 -.-> LLM
-    L2 -.-> LLM
-
-    subgraph ANOM["app/anomaly.py — 5 rules, no LLM"]
-        direction TB
-        A1[Stale unresolved]
-        A2[Resolution outliers]
-        A3[Response outliers]
-        A4[Poor ratings]
-        A5[Agent outliers]
-    end
-    DB --> ANOM
-
-    RESP --> MAIN[app/main.py — FastAPI]
-    ANOM --> MAIN
-    MAIN --> UI[static/index.html]
-```
 
 ```
 app/
@@ -137,8 +97,12 @@ scripts/eval_ground_truth.py   ground-truth accuracy harness (see below)
   into a one-shot repair retry — the same mechanism already used for
   safety rejections.
 - **Provider chain with fallback**: Groq primary (higher free-tier rate
-  limit, faster), Gemini 2.5 Flash as fallback on any Groq failure —
-  configurable via `LLM_PROVIDER_CHAIN` in `.env`.
+  limit, faster), Gemini as fallback on any Groq failure —
+  configurable via `LLM_PROVIDER_CHAIN`, `GROQ_MODEL`, `GEMINI_MODEL` in
+  `.env`. Model IDs are not hardcoded beyond a fallback default in
+  `app/config.py` — both providers retire models with only weeks' notice
+  (this project has already hit one such retirement), so `.env` is the
+  place to update them, not the code.
 - **Reference-time-aware, not wall-clock**: the dataset's timestamps are
   historical, so "how long has this been open" is computed relative to
   the dataset's own latest timestamp (`MAX(created_at)`), not real-world
@@ -221,8 +185,7 @@ failure.
 
 ## Known limitations
 
-> [!NOTE]
-> - The agent-performance-outlier rule depends on the spread of the actual
+- The agent-performance-outlier rule depends on the spread of the actual
   data; with very few agents or a tight distribution it may report zero
   findings, which is a correct result, not a bug (see above).
 - The SQL guard's enum-grounding check is a heuristic regex match on
@@ -231,3 +194,13 @@ failure.
 - `requirements.txt` is pinned to exact versions confirmed working on the
   development machine (Python 3.13); other Python 3.10+ versions should
   work but haven't been explicitly tested.
+- **Provider model IDs go stale.** Both `GROQ_MODEL` and `GEMINI_MODEL`
+  default to specific model IDs that were current as of Sep 2026 — this
+  has already broken once during development (both defaults were pointed
+  at models the providers had since retired). If `/query` starts
+  returning `llm_unavailable` with a `model_not_found`/404 in the message,
+  that's almost certainly this: check
+  [console.groq.com/docs/deprecations](https://console.groq.com/docs/deprecations)
+  and, for Gemini, trust the API's own error message over any doc — it
+  names the exact replacement model ID. Update `GROQ_MODEL`/`GEMINI_MODEL`
+  in `.env`, not the code.
