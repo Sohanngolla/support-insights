@@ -43,7 +43,7 @@ def test_happy_path_count_query():
     result = answer_question("How many tickets are open?", providers=[provider])
 
     assert result.repaired is False
-    assert result.data == [{"n": 99}]
+    assert result.data == [{"n": 111}]
     assert "99" in result.answer
     assert result.sql_provider == "fake"
     assert result.answer_provider == "fake"

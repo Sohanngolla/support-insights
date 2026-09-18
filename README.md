@@ -57,11 +57,11 @@ its own virtualenv if one doesn't exist yet, so there's no separate
 
 | Question | Answer |
 |---|---|
-| How many tickets are currently open? | 99 |
+| How many tickets are currently open? | 111 |
 | What's the average customer rating? | 3.7 |
 | How many distinct agents are there? | 12 |
-| Which resolved tickets got a rating of 1 or 2? | 67 tickets |
-| Show me all Critical tickets not resolved within 12 hours | 41 tickets |
+| Which resolved tickets got a rating of 1 or 2? | 47 tickets |
+| Show me all Critical tickets not resolved within 12 hours | 34 tickets |
 | Who is the president of India? | Declined — outside the dataset's scope |
 
 ## Architecture
