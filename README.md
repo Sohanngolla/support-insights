@@ -11,7 +11,8 @@ detection engine. Single command to run, zero cost to operate.
    throughout). Check with `python3 --version`.
 2. Clone and enter the project:
    ```bash
-   git clone <repo-url> && cd support-insights
+   git clone https://github.com/Sohanngolla/support-insights.git
+   cd support-insights
    ```
 3. Get a free Groq API key — [console.groq.com](https://console.groq.com),
    ~30 seconds, no card required. (Optionally also a free Gemini key from
@@ -19,10 +20,17 @@ detection engine. Single command to run, zero cost to operate.
    through **AI Studio**, not the Cloud Console, which drags in a billing
    project you don't need. Gemini is the fallback if Groq is unavailable;
    Groq alone is enough to run everything.)
-4. ```bash
+4. **macOS / Linux:**
+   ```bash
    cp .env.example .env
+   nano .env
    ```
-   and paste your key(s) in.
+   **Windows (PowerShell or Command Prompt):**
+   ```powershell
+   copy .env.example .env
+   notepad .env
+   ```
+   Either way, this opens the file so you can paste your key(s) in directly.
 5. ```bash
    ./support-insights
    ```
@@ -70,6 +78,41 @@ its own virtualenv if one doesn't exist yet, so there's no separate
 | Who is the president of India? | Declined — outside the dataset's scope |
 
 ## Architecture
+
+### How a question flows through the system
+
+```mermaid
+flowchart TD
+    U[User question] --> Q[app/query.py<br/>orchestration]
+    Q --> L1[LLM Call 1<br/>question + schema -> SQL]
+    L1 --> G{app/guard.py<br/>SELECT-only +<br/>enum grounding}
+    G -- rejected --> R[One repair attempt<br/>error fed back to L1]
+    R --> L1
+    G -- passes --> DB[(app/db.py<br/>support.db)]
+    DB --> L2[LLM Call 2<br/>rows + question -> answer]
+    L2 --> RESP[answer + sql + data]
+
+    subgraph LLM["app/llm.py -- provider chain"]
+        direction LR
+        GROQ[Groq] -.fallback on failure.-> GEM[Gemini]
+    end
+    L1 -.-> LLM
+    L2 -.-> LLM
+
+    subgraph ANOM["app/anomaly.py -- 5 rules, no LLM"]
+        direction TB
+        A1[Stale unresolved]
+        A2[Resolution outliers]
+        A3[Response outliers]
+        A4[Poor ratings]
+        A5[Agent outliers]
+    end
+    DB --> ANOM
+
+    RESP --> MAIN[app/main.py -- FastAPI]
+    ANOM --> MAIN
+    MAIN --> UI[static/index.html]
+```
 
 ```
 app/
